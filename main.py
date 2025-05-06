@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 import sys
-import subprocess
 
 # Configuration de la page
 st.set_page_config(
@@ -14,7 +13,7 @@ st.set_page_config(
 st.markdown("""
 <style>
     .main {
-        background-color: #483d8b;
+        background-color: #f5f5f5;
     }
     .stButton>button {
         width: 100%;
@@ -61,25 +60,6 @@ st.markdown('<p class="subtitle">Plateforme d\'évaluation et d\'analyse de la d
 # Création de deux colonnes pour les boutons
 col1, col2 = st.columns(2)
 
-# Fonction pour lancer une application
-def launch_app(app_name):
-    try:
-        if app_name == "converter":
-            script_path = os.path.join(os.path.dirname(__file__), "converter.py")
-            if not os.path.exists(script_path):
-                st.error(f"Le fichier {script_path} n'existe pas.")
-                return
-            subprocess.Popen([sys.executable, "-m", "streamlit", "run", script_path])
-        elif app_name == "evaluation":
-            script_path = os.path.join(os.path.dirname(__file__), "v6.py")
-            if not os.path.exists(script_path):
-                st.error(f"Le fichier {script_path} n'existe pas.")
-                return
-            subprocess.Popen([sys.executable, "-m", "streamlit", "run", script_path])
-    except Exception as e:
-        st.error(f"Erreur lors du lancement de l'application : {str(e)}")
-        st.error("Veuillez vérifier que tous les fichiers nécessaires sont présents et que les dépendances sont installées.")
-
 # Bouton pour le Convertisseur
 with col1:
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -88,7 +68,7 @@ with col1:
     Transformez vos données de bilan social au format requis pour l'évaluation.
     """)
     if st.button("Lancer le Convertisseur", key="converter"):
-        launch_app("converter")
+        st.switch_page("pages/1_Convertisseur.py")
     st.markdown('</div>', unsafe_allow_html=True)
 
 # Bouton pour l'Évaluation
@@ -99,7 +79,7 @@ with col2:
     Analysez et évaluez la diversité et l'inclusion dans votre entreprise.
     """)
     if st.button("Lancer l'Évaluation", key="evaluation"):
-        launch_app("evaluation")
+        st.switch_page("pages/2_Evaluation.py")
     st.markdown('</div>', unsafe_allow_html=True)
 
 # Section d'aide
@@ -118,8 +98,8 @@ st.markdown("""
    - Téléchargez le rapport PDF
 
 ### 🔧 Prérequis
-- Python 3.7 ou supérieur
-- Packages requis : streamlit, pandas, numpy, matplotlib, altair, plotly, reportlab, kaleido
+- Python 3.9 ou supérieur
+- Packages requis : streamlit, pandas, numpy, plotly, pdfkit, jinja2
 - Pour installer les dépendances : `pip install -r requirements.txt`
 """)
 

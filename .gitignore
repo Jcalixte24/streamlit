@@ -4,7 +4,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -16,6 +15,7 @@ lib64/
 parts/
 sdist/
 var/
+wheels/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -23,14 +23,33 @@ var/
 # Environnement virtuel
 venv/
 ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
 
 # Fichiers système
 .DS_Store
 Thumbs.db
 
+# Fichiers de données
+*.csv
+*.xlsx
+*.xls
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Fichiers temporaires
+*.tmp
+*.temp
+
 # Fichiers IDE
-.idea/
-.vscode/
 *.swp
 *.swo
 

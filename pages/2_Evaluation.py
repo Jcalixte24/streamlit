@@ -22,18 +22,57 @@ import jinja2
 
 # Configuration de la page Streamlit
 st.set_page_config(
-    page_title="Évaluateur D&I",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    page_title="Évaluation D&I",
+    page_icon="📈",
+    layout="wide"
 )
 
-# Titre et introduction de l'application
-st.title("📊 Évaluateur de Diversité et Inclusion en Entreprise")
+# Style CSS personnalisé
 st.markdown("""
-Cette application analyse les indicateurs sociaux d'une entreprise en matière de diversité et inclusion,
-et attribue des notes de A à E sur 6 dimensions clés, basées sur des seuils adaptés au secteur énergie/industrie.
-""")
+<style>
+    .main {
+        background-color: #f5f5f5;
+    }
+    .title {
+        text-align: center;
+        color: #1E3A8A;
+        font-size: 36px;
+        margin-bottom: 20px;
+    }
+    .subtitle {
+        text-align: center;
+        color: #4B5563;
+        font-size: 18px;
+        margin-bottom: 30px;
+    }
+    .footer {
+        text-align: center;
+        color: #6B7280;
+        margin-top: 50px;
+    }
+    .score-card {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin: 10px 0;
+        text-align: center;
+    }
+    .score-value {
+        font-size: 48px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    .score-label {
+        font-size: 18px;
+        color: #4B5563;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Titre et introduction
+st.markdown('<h1 class="title">📈 Évaluation D&I</h1>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Analysez et évaluez la diversité et l\'inclusion dans votre entreprise</p>', unsafe_allow_html=True)
 
 # Fonction pour attribuer une note (A-E) selon les seuils définis
 def attribuer_note(valeur, seuils, ordre_croissant=True):
@@ -669,10 +708,12 @@ if st.button("Évaluer", type="primary") and indicateurs:
     """)
 
 # Pied de page
-st.markdown("---")
 st.markdown("""
-**Diversité & Inclusion Analytics** | Développé avec Streamlit | Basé sur les référentiels du secteur énergie/industrie
-""")
+<div class="footer">
+    <p>Développé par Japhet Calixte N'DRI | Version 1.0</p>
+    <p>© 2024 Tous droits réservés</p>
+</div>
+""", unsafe_allow_html=True)
 
 # Ajout d'informations sur la méthodologie dans la barre latérale
 with st.sidebar:
