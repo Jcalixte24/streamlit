@@ -55,9 +55,11 @@ def create_excel_template():
             'Effectif < 30 ans',
             'Effectif 30-50 ans',
             'Effectif > 50 ans',
-            'Jours d\'absence'
+            'Jours d\'absence',
+            'Nom entreprise',
+            'Année'
         ],
-        'Valeur': [''] * 11,
+        'Valeur': [''] * 13,
         'Description': [
             'Nombre total d\'employés',
             'Nombre d\'employées femmes',
@@ -69,10 +71,93 @@ def create_excel_template():
             'Nombre d\'employés de moins de 30 ans',
             'Nombre d\'employés entre 30 et 50 ans',
             'Nombre d\'employés de plus de 50 ans',
-            'Nombre total de jours d\'absence'
+            'Nombre total de jours d\'absence',
+            'Nom de l\'entreprise',
+            'Année du bilan social'
         ]
     }
     return pd.DataFrame(template_data)
+
+def calculate_indicators(df):
+    """Calcule les indicateurs à partir des données brutes"""
+    # Création d'un dictionnaire pour stocker les valeurs
+    indicators = {}
+    
+    try:
+        # Vérification que toutes les colonnes requises sont présentes
+        required_indicators = [
+            'Effectif total', 'Effectif femmes', 'Effectif hommes',
+            'Effectif handicapés', 'Moyenne salaire femmes', 'Moyenne salaire hommes',
+            'Effectif < 30 ans', 'Effectif 30-50 ans', 'Effectif > 50 ans',
+            'Jours d\'absence', 'Nom entreprise', 'Année'
+        ]
+        
+        # Vérification des indicateurs présents
+        missing_indicators = []
+        for indicator in required_indicators:
+            if indicator not in df['Indicateur'].values:
+                missing_indicators.append(indicator)
+        
+        if missing_indicators:
+            raise ValueError(f"Indicateurs manquants dans le fichier : {', '.join(missing_indicators)}")
+        
+        # Récupération des valeurs de base avec vérification
+        def get_value(indicator_name):
+            value = df[df['Indicateur'] == indicator_name]['Valeur'].values
+            if len(value) == 0:
+                raise ValueError(f"Valeur manquante pour l'indicateur : {indicator_name}")
+            try:
+                return float(value[0])
+            except (ValueError, TypeError):
+                raise ValueError(f"Valeur invalide pour l'indicateur {indicator_name} : {value[0]}")
+        
+        # Récupération des valeurs textuelles
+        def get_text_value(indicator_name):
+            value = df[df['Indicateur'] == indicator_name]['Valeur'].values
+            if len(value) == 0:
+                raise ValueError(f"Valeur manquante pour l'indicateur : {indicator_name}")
+            return str(value[0])
+        
+        # Récupération des valeurs numériques
+        total = get_value('Effectif total')
+        femmes = get_value('Effectif femmes')
+        hommes = get_value('Effectif hommes')
+        handicapes = get_value('Effectif handicapés')
+        salaire_femmes = get_value('Moyenne salaire femmes')
+        salaire_hommes = get_value('Moyenne salaire hommes')
+        moins_30 = get_value('Effectif < 30 ans')
+        entre_30_50 = get_value('Effectif 30-50 ans')
+        plus_50 = get_value('Effectif > 50 ans')
+        absences = get_value('Jours d\'absence')
+        
+        # Récupération des valeurs textuelles
+        nom_entreprise = get_text_value('Nom entreprise')
+        annee = get_text_value('Année')
+        
+        # Vérification de la cohérence des données
+        if total != (femmes + hommes):
+            st.warning("Attention : La somme des effectifs femmes et hommes ne correspond pas à l'effectif total")
+        
+        if total != (moins_30 + entre_30_50 + plus_50):
+            st.warning("Attention : La somme des effectifs par tranche d'âge ne correspond pas à l'effectif total")
+        
+        # Calcul des indicateurs
+        indicators['nom_entreprise'] = nom_entreprise
+        indicators['annee'] = annee
+        indicators['taux_feminisation'] = round((femmes / total) * 100, 1)
+        indicators['taux_femmes_cadres'] = round((femmes / total) * 100, 1)  # Approximation
+        indicators['taux_handicap'] = round((handicapes / total) * 100, 1)
+        indicators['ecart_salaire'] = round(((salaire_hommes - salaire_femmes) / salaire_hommes) * 100, 1)
+        indicators['moins_30_ans'] = round((moins_30 / total) * 100, 1)
+        indicators['entre_30_50_ans'] = round((entre_30_50 / total) * 100, 1)
+        indicators['plus_50_ans'] = round((plus_50 / total) * 100, 1)
+        indicators['taux_absenteisme'] = round((absences / (total * 220)) * 100, 1)  # 220 jours ouvrables par an
+        
+        return indicators
+        
+    except Exception as e:
+        st.error(f"Erreur lors du calcul des indicateurs : {str(e)}")
+        return None
 
 # Création et téléchargement du modèle Excel
 st.markdown("### 📥 Télécharger le modèle")
@@ -114,20 +199,27 @@ if uploaded_file is not None:
         if not all(col in df.columns for col in required_columns):
             st.error("Le fichier doit contenir les colonnes 'Indicateur' et 'Valeur'")
         else:
-            # Conversion en CSV
-            csv = df.to_csv(index=False)
+            # Calcul des indicateurs
+            indicators = calculate_indicators(df)
             
-            # Bouton de téléchargement
-            st.download_button(
-                label="📥 Télécharger le fichier CSV",
-                data=csv,
-                file_name="bilan_social.csv",
-                mime="text/csv"
-            )
-            
-            # Affichage des données
-            st.markdown("### 📊 Aperçu des données")
-            st.dataframe(df)
+            if indicators is not None:
+                # Création du DataFrame final
+                final_df = pd.DataFrame(list(indicators.items()), columns=['Indicateur', 'Valeur'])
+                
+                # Conversion en CSV
+                csv = final_df.to_csv(index=False)
+                
+                # Bouton de téléchargement
+                st.download_button(
+                    label="📥 Télécharger le fichier CSV",
+                    data=csv,
+                    file_name="bilan_social.csv",
+                    mime="text/csv"
+                )
+                
+                # Affichage des données
+                st.markdown("### 📊 Aperçu des données")
+                st.dataframe(final_df)
             
     except Exception as e:
         st.error(f"Une erreur s'est produite lors de la conversion : {str(e)}")
