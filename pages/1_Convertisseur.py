@@ -48,6 +48,8 @@ def create_excel_template():
             'Effectif total',
             'Effectif femmes',
             'Effectif hommes',
+            'Effectif femmes cadres',
+            'Effectif hommes cadres',
             'Effectif handicapés',
             'Effectif non-handicapés',
             'Moyenne salaire femmes',
@@ -59,11 +61,13 @@ def create_excel_template():
             'Nom entreprise',
             'Année'
         ],
-        'Valeur': [''] * 13,
+        'Valeur': [''] * 15,
         'Description': [
             'Nombre total d\'employés',
             'Nombre d\'employées femmes',
             'Nombre d\'employés hommes',
+            'Nombre d\'employées femmes cadres',
+            'Nombre d\'employés hommes cadres',
             'Nombre d\'employés en situation de handicap',
             'Nombre d\'employés non-handicapés',
             'Salaire moyen des femmes (en euros)',
@@ -87,6 +91,7 @@ def calculate_indicators(df):
         # Vérification que toutes les colonnes requises sont présentes
         required_indicators = [
             'Effectif total', 'Effectif femmes', 'Effectif hommes',
+            'Effectif femmes cadres', 'Effectif hommes cadres',
             'Effectif handicapés', 'Moyenne salaire femmes', 'Moyenne salaire hommes',
             'Effectif < 30 ans', 'Effectif 30-50 ans', 'Effectif > 50 ans',
             'Jours d\'absence', 'Nom entreprise', 'Année'
@@ -122,6 +127,9 @@ def calculate_indicators(df):
         total = get_value('Effectif total')
         femmes = get_value('Effectif femmes')
         hommes = get_value('Effectif hommes')
+        femmes_cadres = get_value('Effectif femmes cadres')
+        hommes_cadres = get_value('Effectif hommes cadres')
+        total_cadres = femmes_cadres + hommes_cadres
         handicapes = get_value('Effectif handicapés')
         salaire_femmes = get_value('Moyenne salaire femmes')
         salaire_hommes = get_value('Moyenne salaire hommes')
@@ -141,11 +149,17 @@ def calculate_indicators(df):
         if total != (moins_30 + entre_30_50 + plus_50):
             st.warning("Attention : La somme des effectifs par tranche d'âge ne correspond pas à l'effectif total")
         
+        if femmes_cadres > femmes:
+            st.warning("Attention : Le nombre de femmes cadres est supérieur au nombre total de femmes")
+        
+        if hommes_cadres > hommes:
+            st.warning("Attention : Le nombre d'hommes cadres est supérieur au nombre total d'hommes")
+        
         # Calcul des indicateurs
         indicators['nom_entreprise'] = nom_entreprise
         indicators['annee'] = annee
         indicators['taux_feminisation'] = round((femmes / total) * 100, 1)
-        indicators['taux_femmes_cadres'] = round((femmes / total) * 100, 1)  # Approximation
+        indicators['taux_femmes_cadres'] = round((femmes_cadres / total_cadres) * 100, 1) if total_cadres > 0 else 0
         indicators['taux_handicap'] = round((handicapes / total) * 100, 1)
         indicators['ecart_salaire'] = round(((salaire_hommes - salaire_femmes) / salaire_hommes) * 100, 1)
         indicators['moins_30_ans'] = round((moins_30 / total) * 100, 1)
